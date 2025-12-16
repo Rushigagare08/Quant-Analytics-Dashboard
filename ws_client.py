@@ -12,7 +12,20 @@ def poll_binance(symbol="BTCUSDT"):
     while True:
         try:
             r = requests.get(url, params=params, timeout=5)
+
+            # 1️⃣ HTTP-level check
+            if r.status_code != 200:
+                print("REST HTTP error:", r.text)
+                time.sleep(2)
+                continue
+
             trades = r.json()
+
+            # 2️⃣ Ensure correct type
+            if not isinstance(trades, list):
+                print("REST API error response:", trades)
+                time.sleep(2)
+                continue
 
             for t in trades:
                 tick_buffer.append({
@@ -22,6 +35,7 @@ def poll_binance(symbol="BTCUSDT"):
                     "qty": float(t["qty"])
                 })
 
+            # limit buffer
             if len(tick_buffer) > 20000:
                 tick_buffer[:] = tick_buffer[-20000:]
 
